@@ -1,3 +1,7 @@
+/**
+ * Main calendar component
+ */
+
 import { useState, type MouseEvent } from "react"
 import { Box, Button, ButtonGroup, Card, CardContent, CardHeader, Container, Divider } from "@mui/material"
 
@@ -11,10 +15,10 @@ import {enUS} from "date-fns/locale/en-US"
 
 import "react-big-calendar/lib/css/react-big-calendar.css"
 
-import CalEvent from "./CalEvent"
+// import CalEvent from "./CalEvent"
 import AddEvent from "./AddEvent"
-import EventView from "./EventView"
-import AddDatePickerEvent from "./AddDatePickerEvent"
+// import EventView from "./EventView"
+// import AddDatePickerEvent from "./AddDatePickerEvent"
 
 const locales = {
   "en-US": enUS,
@@ -44,7 +48,6 @@ const initialEventFormState: EventFormData = {
 export function WebCalendar() {
     const [openSlot, setOpenSlot] = useState(false)
     const [openDatepicker, setOpenDatepicker] = useState(false)
-    // const [openTodoModal, setOpenTodoModal] = useState(false)
     const [currentEvent, setCurrentEvent] = useState<Event | IEventInfo | null>(null)
 
     const [eventView, setEventView] = useState(false)
@@ -56,73 +59,72 @@ export function WebCalendar() {
     const [datePickerEventFormData, setDatePickerEventFormData] = useState<DatePickerEventFormData>(initialDatePickerEventFormData)
 
     const handleSelectSlot = (event: Event) => {
-        setOpenSlot(true)
-        setCurrentEvent(event)
+      setOpenSlot(true)
+      setCurrentEvent(event)
     }
 
     const handleSelectEvent = (event: IEventInfo) => {
-        setCurrentEvent(event)
-        setEventView(true)
+      setCurrentEvent(event)
+      setEventView(true)
     }
 
     const handleClose = () => {
-        setEventFormData(initialEventFormState)
-        setOpenSlot(false)
+      setEventFormData(initialEventFormState)
+      setOpenSlot(false)
     }
 
     const handleDatePickerClose = () => {
-        setDatePickerEventFormData(initialDatePickerEventFormData)
-        setOpenDatepicker(false)
+      setDatePickerEventFormData(initialDatePickerEventFormData)
+      setOpenDatepicker(false)
     }
 
     const onAddEvent = (e: MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault()
+      e.preventDefault()
 
-        const data: IEventInfo = {
-            ...eventFormData,
-            _id: generateId(),
-            start: currentEvent?.start,
-            end: currentEvent?.end,
-        }
+      const data: IEventInfo = {
+        ...eventFormData,
+        _id: generateId(),
+        start: currentEvent?.start,
+        end: currentEvent?.end,
+      }
 
-        const newEvents = [...events, data]
+      const newEvents = [...events, data]
 
-        setEvents(newEvents)
-        handleClose()
+      setEvents(newEvents)
+      handleClose()
     }
 
     const onAddEventFromDatePicker = (e: MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault()
+      e.preventDefault()
 
-        const addHours = (date: Date | undefined, hours: number) => {
-            return date ? date.setHours(date.getHours() + hours) : undefined
-        }
+      const addHours = (date: Date | undefined, hours: number) => {
+        return date ? date.setHours(date.getHours() + hours) : undefined
+      }
 
-        const setMinToZero = (date: any) => {
-            date.setSeconds(0)
+      const setMinToZero = (date: any) => {
+        date.setSeconds(0)
 
-            return date
-        }
+        return date
+      }
 
-        const data: IEventInfo = {
-            ...datePickerEventFormData,
-            _id: generateId(),
-            start: setMinToZero(datePickerEventFormData.start),
-            end: datePickerEventFormData.allDay
-                ? addHours(datePickerEventFormData.start, 12)
-                : setMinToZero(datePickerEventFormData.end),
-        }
+      const data: IEventInfo = {
+        ...datePickerEventFormData,
+        _id: generateId(),
+        start: setMinToZero(datePickerEventFormData.start),
+        end: datePickerEventFormData.allDay
+            ? addHours(datePickerEventFormData.start, 12)
+            : setMinToZero(datePickerEventFormData.end),
+      }
 
-        const newEvents = [...events, data]
+      const newEvents = [...events, data]
+      setEvents(newEvents)
+      setDatePickerEventFormData(initialDatePickerEventFormData)
+    }
 
-            setEvents(newEvents)
-            setDatePickerEventFormData(initialDatePickerEventFormData)
-        }
-
-        const onDeleteEvent = () => {
-            setEvents(() => [...events].filter((e) => e._id !== (currentEvent as IEventInfo)._id!))
-            setEventView(false)
-        }
+    const onDeleteEvent = () => {
+      setEvents(() => [...events].filter((e) => e._id !== (currentEvent as IEventInfo)._id!))
+      setEventView(false)
+    }
     
     return (
     <Box
@@ -136,7 +138,7 @@ export function WebCalendar() {
     >
       <Container maxWidth={false}>
         <Card>
-          <CardHeader title="Calendar" subheader="Create Events and Todos and manage them easily" />
+          <CardHeader title="Calendar" subheader="Create Events and manage them easily" />
           <Divider />
           <CardContent>
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
@@ -144,9 +146,6 @@ export function WebCalendar() {
                 <Button onClick={() => setOpenDatepicker(true)} size="small" variant="contained">
                   Add event
                 </Button>
-                {/* <Button onClick={() => setOpenTodoModal(true)} size="small" variant="contained">
-                  Create todo
-                </Button> */}
               </ButtonGroup>
             </Box>
             <Divider style={{ margin: 10 }} />
@@ -156,22 +155,20 @@ export function WebCalendar() {
               eventFormData={eventFormData}
               setEventFormData={setEventFormData}
               onAddEvent={onAddEvent}
-              // todos={todos}
             />
-            <AddDatePickerEvent
+            {/* <AddDatePickerEvent
               open={openDatepicker}
               handleClose={handleDatePickerClose}
               datePickerEventFormData={datePickerEventFormData}
               setDatePickerEventFormData={setDatePickerEventFormData}
               onAddEvent={onAddEventFromDatePicker}
-              // todos={todos}
             />
             <EventView
               open={eventView}
               handleClose={() => setEventView(false)}
               onDeleteEvent={onDeleteEvent}
               currentEvent={currentEvent as IEventInfo}
-            />
+            /> */}
             {/* <AddTodoModal
               open={openTodoModal}
               handleClose={() => setOpenTodoModal(false)}
@@ -185,7 +182,7 @@ export function WebCalendar() {
               onSelectSlot={handleSelectSlot}
               selectable
               startAccessor="start"
-              components={{ event: CalEvent }}
+              // components={{ event: CalEvent }}
               endAccessor="end"
               defaultView="week"
               // eventPropGetter={(event) => {
