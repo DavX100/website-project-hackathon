@@ -17,7 +17,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css"
 
 import EventInfo from "./EventInfo"
 import AddEvent from "./AddEvent"
-// import EventView from "./EventView"
+import EventView from "./EventView"
 // import AddDatePickerEvent from "./AddDatePickerEvent"
 
 const locales = {
@@ -163,12 +163,12 @@ export function WebCalendar() {
               setDatePickerEventFormData={setDatePickerEventFormData}
               onAddEvent={onAddEventFromDatePicker}
             /> */}
-            {/* <EventView
+            <EventView
               open={eventView}
               handleClose={() => setEventView(false)}
               onDeleteEvent={onDeleteEvent}
               currentEvent={currentEvent as IEventInfo}
-            /> */}
+            />
             <Calendar
               localizer={localizer}
               events={events}
