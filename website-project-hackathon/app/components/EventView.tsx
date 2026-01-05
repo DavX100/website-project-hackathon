@@ -1,3 +1,7 @@
+/**
+ * View event details and option to delete evetn
+ */
+
 import type { SetStateAction, MouseEvent, Dispatch } from "react"
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Box, Typography } from "@mui/material"
 import type { IEventInfo } from "./WebCalendar"
