@@ -15,7 +15,7 @@ import {enUS} from "date-fns/locale/en-US"
 
 import "react-big-calendar/lib/css/react-big-calendar.css"
 
-// import CalEvent from "./CalEvent"
+import EventInfo from "./EventInfo"
 import AddEvent from "./AddEvent"
 // import EventView from "./EventView"
 // import AddDatePickerEvent from "./AddDatePickerEvent"
@@ -162,18 +162,12 @@ export function WebCalendar() {
               datePickerEventFormData={datePickerEventFormData}
               setDatePickerEventFormData={setDatePickerEventFormData}
               onAddEvent={onAddEventFromDatePicker}
-            />
-            <EventView
+            /> */}
+            {/* <EventView
               open={eventView}
               handleClose={() => setEventView(false)}
               onDeleteEvent={onDeleteEvent}
               currentEvent={currentEvent as IEventInfo}
-            /> */}
-            {/* <AddTodoModal
-              open={openTodoModal}
-              handleClose={() => setOpenTodoModal(false)}
-              todos={todos}
-              setTodos={setTodos}
             /> */}
             <Calendar
               localizer={localizer}
@@ -182,18 +176,9 @@ export function WebCalendar() {
               onSelectSlot={handleSelectSlot}
               selectable
               startAccessor="start"
-              // components={{ event: CalEvent }}
+              components={{ event: EventInfo }}
               endAccessor="end"
               defaultView="week"
-              // eventPropGetter={(event) => {
-              //   const hasTodo = todos.find((todo) => todo._id === event.todoId)
-              //   return {
-              //     style: {
-              //       backgroundColor: hasTodo ? hasTodo.color : "#b64fc8",
-              //       borderColor: hasTodo ? hasTodo.color : "#b64fc8",
-              //     },
-              //   }
-              // }}
               style={{
                 height: 900,
               }}
