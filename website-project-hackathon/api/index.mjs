@@ -68,8 +68,8 @@ const handlePostRequest = async (event, context) => {
       id: _id,
       description,
       allDay,
-      start,
-      end,
+      startDate: start,
+      endDate: end,
     },
   });
 
@@ -89,7 +89,7 @@ export const handleUpdateRequest = async (event, context) => {
     Key: {
       id: _id,
     },
-    UpdateExpression: "set description = :d, allDay = :a, start = :s, end = :e",
+    UpdateExpression: "set description = :d, allDay = :a, startDate = :s, endDate = :e",
     ExpressionAttributeValues: {
       ":d": description,
       ":a": allDay,
