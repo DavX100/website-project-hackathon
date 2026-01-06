@@ -10,12 +10,16 @@ interface IProps {
   open: boolean
   handleClose: Dispatch<SetStateAction<void>>
   onDeleteEvent: (e: MouseEvent<HTMLButtonElement>) => void
+  setUpdateEvent: Dispatch<SetStateAction<boolean>>
   currentEvent: IEventInfo | null
 }
 
-const EventView = ({ open, handleClose, onDeleteEvent, currentEvent }: IProps) => {
+const EventView = ({ open, handleClose, onDeleteEvent, setUpdateEvent, currentEvent }: IProps) => {
   const onClose = () => {
     handleClose()
+  }
+  const onUpdateEvent = () => {
+    setUpdateEvent(true)
   }
 
   return (
@@ -32,6 +36,9 @@ const EventView = ({ open, handleClose, onDeleteEvent, currentEvent }: IProps) =
       <DialogActions>
         <Button color="error" onClick={onClose}>
           Cancel
+        </Button>
+        <Button color="error" onClick={onUpdateEvent}>
+          Update Event
         </Button>
         <Button color="info" onClick={onDeleteEvent}>
           Delete Event

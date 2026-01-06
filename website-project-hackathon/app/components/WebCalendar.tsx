@@ -18,7 +18,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css"
 import EventInfo from "./EventInfo"
 import AddEvent from "./AddEvent"
 import EventView from "./EventView"
-// import AddDatePickerEvent from "./AddDatePickerEvent"
+import UpdateEvent from "./UpdateEvent"
 
 const locales = {
   "en-US": enUS,
@@ -47,10 +47,11 @@ const initialEventFormState: EventFormData = {
 
 export function WebCalendar() {
     const [openSlot, setOpenSlot] = useState(false)
-    const [openDatepicker, setOpenDatepicker] = useState(false)
+    const [openEventList, setOpenEventList] = useState(false)
     const [currentEvent, setCurrentEvent] = useState<Event | IEventInfo | null>(null)
 
     const [eventView, setEventView] = useState(false)
+    const [updateEvent, setUpdateEvent] = useState(false)
 
     const [events, setEvents] = useState<IEventInfo[]>([])
 
@@ -73,9 +74,9 @@ export function WebCalendar() {
       setOpenSlot(false)
     }
 
-    const handleDatePickerClose = () => {
+    const handleUpdateEventClose = () => {
       setDatePickerEventFormData(initialDatePickerEventFormData)
-      setOpenDatepicker(false)
+      setUpdateEvent(false)
     }
 
     const onAddEvent = (e: MouseEvent<HTMLButtonElement>) => {
@@ -94,8 +95,9 @@ export function WebCalendar() {
       handleClose()
     }
 
-    const onAddEventFromDatePicker = (e: MouseEvent<HTMLButtonElement>) => {
+    const onUpdateEvent = (e: MouseEvent<HTMLButtonElement>) => {
       e.preventDefault()
+      const curEv = currentEvent as IEventInfo
 
       const addHours = (date: Date | undefined, hours: number) => {
         return date ? date.setHours(date.getHours() + hours) : undefined
@@ -109,16 +111,20 @@ export function WebCalendar() {
 
       const data: IEventInfo = {
         ...datePickerEventFormData,
-        _id: generateId(),
+        _id: curEv._id,
         start: setMinToZero(datePickerEventFormData.start),
         end: datePickerEventFormData.allDay
             ? addHours(datePickerEventFormData.start, 12)
             : setMinToZero(datePickerEventFormData.end),
       }
 
-      const newEvents = [...events, data]
-      setEvents(newEvents)
+      // const newEvents = [...events, data]
+      const curEventIndex = events.findIndex(ev => ev._id === curEv._id)
+      let copyEvents = [...events]
+      copyEvents[curEventIndex] = {...data};
+      setEvents(copyEvents)
       setDatePickerEventFormData(initialDatePickerEventFormData)
+      setUpdateEvent(false)
     }
 
     const onDeleteEvent = () => {
@@ -143,8 +149,11 @@ export function WebCalendar() {
           <CardContent>
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
               <ButtonGroup size="large" variant="contained" aria-label="outlined primary button group">
-                <Button onClick={() => setOpenDatepicker(true)} size="small" variant="contained">
+                {/* <Button onClick={() => setOpenDatepicker(true)} size="small" variant="contained">
                   Add event
+                </Button> */}
+                <Button onClick={() => setOpenEventList(true)} size="small" variant="contained">
+                  View all events
                 </Button>
               </ButtonGroup>
             </Box>
@@ -163,10 +172,19 @@ export function WebCalendar() {
               setDatePickerEventFormData={setDatePickerEventFormData}
               onAddEvent={onAddEventFromDatePicker}
             /> */}
+            <UpdateEvent 
+              open={updateEvent}
+              handleClose={handleUpdateEventClose}
+              event={currentEvent as IEventInfo}
+              datePickerEventFormData={datePickerEventFormData}
+              setDatePickerEventFormData={setDatePickerEventFormData}
+              onUpdateEvent={onUpdateEvent}
+            />
             <EventView
               open={eventView}
               handleClose={() => setEventView(false)}
               onDeleteEvent={onDeleteEvent}
+              setUpdateEvent={setUpdateEvent}
               currentEvent={currentEvent as IEventInfo}
             />
             <Calendar
