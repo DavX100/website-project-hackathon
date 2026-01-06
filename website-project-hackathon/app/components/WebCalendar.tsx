@@ -3,7 +3,7 @@
  */
 
 import { useState, type MouseEvent } from "react"
-import { Box, Button, ButtonGroup, Card, CardContent, CardHeader, Container, Divider } from "@mui/material"
+import { Box, Button, Card, CardContent, CardHeader, Container, Divider} from "@mui/material"
 
 import { Calendar, type Event, dateFnsLocalizer } from "react-big-calendar"
 
@@ -47,7 +47,6 @@ const initialEventFormState: EventFormData = {
 
 export function WebCalendar() {
     const [openSlot, setOpenSlot] = useState(false)
-    const [openEventList, setOpenEventList] = useState(false)
     const [currentEvent, setCurrentEvent] = useState<Event | IEventInfo | null>(null)
 
     const [eventView, setEventView] = useState(false)
@@ -141,7 +140,6 @@ export function WebCalendar() {
             : setMinToZero(datePickerEventFormData.end),
       }
 
-      // const newEvents = [...events, data]
       const curEventIndex = events.findIndex(ev => ev._id === curEv._id)
       let copyEvents = [...events]
       copyEvents[curEventIndex] = {...data};
@@ -172,115 +170,97 @@ export function WebCalendar() {
           <CardContent>
           <Box sx={{ display: "flex"}}>
             <Box sx = {{ flex: 3 , pr: 2}}>
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <ButtonGroup size="large" variant="contained" aria-label="outlined primary button group">
-                    {/* <Button onClick={() => setOpenDatepicker(true)} size="small" variant="contained">
-                      Add event
-                    </Button> */}
-                    <Button onClick={() => setOpenEventList(true)} size="small" variant="contained">
-                      View all events
-                    </Button>
-                  </ButtonGroup>
-                </Box>
-                <Divider style={{ margin: 10 }} />
-                <AddEvent
-                  open={openSlot}
-                  handleClose={handleClose}
-                  eventFormData={eventFormData}
-                  setEventFormData={setEventFormData}
-                  onAddEvent={onAddEvent}
-                />
-                {/* <AddDatePickerEvent
-                  open={openDatepicker}
-                  handleClose={handleDatePickerClose}
-                  datePickerEventFormData={datePickerEventFormData}
-                  setDatePickerEventFormData={setDatePickerEventFormData}
-                  onAddEvent={onAddEventFromDatePicker}
-                /> */}
-                <UpdateEvent 
-                  open={updateEvent}
-                  handleClose={handleUpdateEventClose}
-                  event={currentEvent as IEventInfo}
-                  datePickerEventFormData={datePickerEventFormData}
-                  setDatePickerEventFormData={setDatePickerEventFormData}
-                  onUpdateEvent={onUpdateEvent}
-                />
-                <EventView
-                  open={eventView}
-                  handleClose={() => setEventView(false)}
-                  onDeleteEvent={onDeleteEvent}
-                  setUpdateEvent={setUpdateEvent}
-                  currentEvent={currentEvent as IEventInfo}
-                />
-                <Calendar
-                  localizer={localizer}
-                  events={events}
-                  onSelectEvent={handleSelectEvent}
-                  onSelectSlot={handleSelectSlot}
-                  selectable
-                  startAccessor="start"
-                  components={{ event: EventInfo }}
-                  endAccessor="end"
-                  defaultView="week"
-                  style={{
-                    height: 900,
-                  }}
-                />
-              </Box>
-              <Box
-                  sx={{
-                    flex: 1,
-                    borderLeft: "1px solid #ddd",
-                    pl: 2,
-                    display: "flex",
-                    borderRadius: 2, p: 4,
-                    flexDirection: "column",
-                    height: "900px",
-                    boxShadow: "0 0 10px rgba(0,0,0,0.1)"
-                  }}>
-                    <h3>AI Chat</h3>
-                    <Box
-                      sx={{
-                        flex: 1,
-                        overflowY: "auto",
-                        mb: 1,
-                        p: 1,
-                        border: "1px solid #ccc",
-                      }}
-                    >
-                      {chatMsgs.map((msg, i) => (
-                        <div key={i}>
-                          <span
-                            style={{
-                              fontWeight: "bold",
-                              color: msg.sender === "ai" ? "green" : "inherit",
-                              marginRight: 4
-                            }}
-                          >
-                            {msg.sender === "ai" ? "> " : ""}
-                          </span>
-                          {msg.msg}</div>
-                      ))}
-                    </Box>
-                    <Box sx={{ display: "flex", gap: 1 }}>
-                      <input
-                        style={{ flex: 1, padding: 8 }}
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        placeholder="Ask about your calendar..."
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter")
-                          {
-                            sendMessage();
-                            e.preventDefault();
-                          }
-                        }}
-                      />
-                      <Button variant="contained" onClick={sendMessage}>
-                        Send
-                      </Button>
-                    </Box>
+              <AddEvent
+                open={openSlot}
+                handleClose={handleClose}
+                eventFormData={eventFormData}
+                setEventFormData={setEventFormData}
+                onAddEvent={onAddEvent}
+              />
+              <UpdateEvent 
+                open={updateEvent}
+                handleClose={handleUpdateEventClose}
+                event={currentEvent as IEventInfo}
+                datePickerEventFormData={datePickerEventFormData}
+                setDatePickerEventFormData={setDatePickerEventFormData}
+                onUpdateEvent={onUpdateEvent}
+              />
+              <EventView
+                open={eventView}
+                handleClose={() => setEventView(false)}
+                onDeleteEvent={onDeleteEvent}
+                setUpdateEvent={setUpdateEvent}
+                currentEvent={currentEvent as IEventInfo}
+              />
+              <Calendar
+                localizer={localizer}
+                events={events}
+                onSelectEvent={handleSelectEvent}
+                onSelectSlot={handleSelectSlot}
+                selectable
+                startAccessor="start"
+                components={{ event: EventInfo }}
+                endAccessor="end"
+                defaultView="week"
+                style={{
+                  height: 900,
+                }}
+              />
+            </Box>
+            <Box
+                sx={{
+                  flex: 1,
+                  borderLeft: "1px solid #ddd",
+                  pl: 2,
+                  display: "flex",
+                  borderRadius: 2, p: 4,
+                  flexDirection: "column",
+                  height: "900px",
+                  boxShadow: "0 0 10px rgba(0,0,0,0.1)"
+                }}>
+                  <h3>AI Chat</h3>
+                  <Box
+                    sx={{
+                      flex: 1,
+                      overflowY: "auto",
+                      mb: 1,
+                      p: 1,
+                      border: "1px solid #ccc",
+                    }}
+                  >
+                    {chatMsgs.map((msg, i) => (
+                      <div key={i}>
+                        <span
+                          style={{
+                            fontWeight: "bold",
+                            color: msg.sender === "ai" ? "green" : "inherit",
+                            marginRight: 4
+                          }}
+                        >
+                          {msg.sender === "ai" ? "> " : ""}
+                        </span>
+                        {msg.msg}</div>
+                    ))}
                   </Box>
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <input
+                      style={{ flex: 1, padding: 8 }}
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder="Ask about your calendar..."
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter")
+                        {
+                          sendMessage();
+                          e.preventDefault();
+                        }
+                      }}
+                    />
+                    <Button variant="contained" onClick={sendMessage}>
+                      Send
+                    </Button>
+                  </Box>
+                </Box>
               </Box>
           </CardContent>
         </Card>
