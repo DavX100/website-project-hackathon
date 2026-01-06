@@ -60,7 +60,7 @@ const handleGetRequest = async () => {
 };
 
 const handlePostRequest = async (event, context) => {
-  const { _id, description, allDay, start, end } = JSON.parse(event.body);
+  const { _id, description, allDay, startDate, endDate } = JSON.parse(event.body);
 
   const command = new PutCommand({
     TableName: tableName,
@@ -68,8 +68,8 @@ const handlePostRequest = async (event, context) => {
       id: _id,
       description,
       allDay,
-      startDate: start,
-      endDate: end,
+      startDate,
+      endDate,
     },
   });
 
@@ -82,19 +82,25 @@ const handlePostRequest = async (event, context) => {
 };
 
 export const handleUpdateRequest = async (event, context) => {
-  const { _id, description, allDay, start, end } = JSON.parse(event.body);
+  const { _id, description, allDay, startDate, endDate } = JSON.parse(event.body);
 
   const command = new UpdateCommand({
     TableName: tableName,
     Key: {
       id: _id,
     },
-    UpdateExpression: "set description = :d, allDay = :a, startDate = :s, endDate = :e",
+    UpdateExpression: "set #description = :d, #allDay = :a, #startDate = :s, #endDate = :e",
+    ExpressionAttributeNames: {
+      '#description': 'description',
+      '#allDay': 'allDay',
+      '#startDate': 'startDate',
+      '#endDate': 'endDate',
+    },
     ExpressionAttributeValues: {
       ":d": description,
       ":a": allDay,
-      ":s": start,
-      ":e": end,
+      ":s": startDate,
+      ":e": endDate,
     },
     ReturnValues: "ALL_NEW",
   });
