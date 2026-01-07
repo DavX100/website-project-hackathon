@@ -3,7 +3,7 @@ import axios from 'axios'
 const createEvent = async (e) => {
     console.log("creating event with: ", e);
     const body = {
-        id: e._id,
+        _id: e._id,
         description: e.description,
         startDate: e.start?.toString(),
         endDate: e.end?.toString(),
@@ -22,7 +22,7 @@ const getEvents = async () => {
 const upEvent = async (e) => {
     console.log("updating event with: ", e);
     const body = {
-        id: e._id,
+        _id: e._id,
         description: e.description,
         startDate: e.start?.toString(),
         endDate: e.end?.toString(),
@@ -37,7 +37,7 @@ const upEvent = async (e) => {
 const deleteEvent = async (e) => {
     console.log("deleting event with: ", e);
     const body = {
-        id: e._id
+        _id: e._id
     }
     console.log("body: ", body);
     await axios.delete("https://tbq1zmwh88.execute-api.us-east-2.amazonaws.com/test/deleteEvent", body);
