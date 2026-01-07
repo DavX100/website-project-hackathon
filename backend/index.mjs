@@ -142,6 +142,7 @@ export const handleUpdateRequest = async (event, context) => {
 };
 
 const handleDeleteRequest = async (event) => {
+  console.log(event.body);
   const { _id } = JSON.parse(event.body);
 
   const command = new DeleteCommand({

@@ -37,7 +37,8 @@ const upEvent = async (e) => {
 const deleteEvent = async (e) => {
     console.log("deleting event with: ", e);
     const body = {
-        _id: e._id
+        data: { _id: e._id },
+        headers: { "Content-Type": "application/json" },
     }
     console.log("body: ", body);
     await axios.delete("https://tbq1zmwh88.execute-api.us-east-2.amazonaws.com/test/deleteEvent", body);
