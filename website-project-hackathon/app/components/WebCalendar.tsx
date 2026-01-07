@@ -2,8 +2,8 @@
  * Main calendar component
  */
 
-import { useState, type MouseEvent } from "react"
-import { Box, Button, ButtonGroup, Card, CardContent, CardHeader, Container, Divider } from "@mui/material"
+import { useState, useEffect, type MouseEvent, useCallback } from "react"
+import { Box, Button, Card, CardContent, CardHeader, Container, Divider} from "@mui/material"
 
 import { Calendar, type Event, dateFnsLocalizer } from "react-big-calendar"
 
@@ -19,6 +19,7 @@ import EventInfo from "./EventInfo"
 import AddEvent from "./AddEvent"
 import EventView from "./EventView"
 import UpdateEvent from "./UpdateEvent"
+import {createEvent, deleteEvent, getEvents, upEvent} from "../../api/apis.js"
 
 const locales = {
   "en-US": enUS,
@@ -47,7 +48,6 @@ const initialEventFormState: EventFormData = {
 
 export function WebCalendar() {
     const [openSlot, setOpenSlot] = useState(false)
-    const [openEventList, setOpenEventList] = useState(false)
     const [currentEvent, setCurrentEvent] = useState<Event | IEventInfo | null>(null)
 
     const [eventView, setEventView] = useState(false)
@@ -61,6 +61,61 @@ export function WebCalendar() {
 
     const [chatMsgs, setChatMsgs] = useState<{sender: "ai" | "user", msg: string}[]>([])
     const [chatInput, setChatInput] = useState<string>("")
+
+    // const postEvent = useCallback(async () => {
+    //   const newEvent = events.
+    //   await createEvent()
+    // }, [])
+
+    const convertResponse = (e: {id: string, description: string, allDay: boolean, startDate: string, endDate: string}[]) => {
+      const converted: IEventInfo[] = [];
+      for (let i = 0; i < e.length; i++) {
+        const event = e[i];
+        // const newStartDate = event.start || new Date();
+        const newStart = event.startDate ? new Date(event.startDate) : undefined;
+        const newEnd = event.endDate ? new Date(event.endDate) : undefined;
+        const converedEvent: IEventInfo = {
+          _id: event.id,
+          description: event.description,
+          allDay: event.allDay,
+          start: newStart,
+          end: newEnd,
+        }
+        converted.push(converedEvent);
+      }
+      // console.log("converted: ", converted);
+      return converted;
+    }
+    
+    useEffect(() => {
+      const fetchEvents = async () => {
+        const response = await getEvents();
+        const data = response.data;
+        const parsedData = convertResponse(data);
+        console.log(JSON.stringify(response.data));
+        console.log(data);
+        setEvents(parsedData);
+        console.log(events);
+      }
+      fetchEvents();
+    }, []);
+
+    useEffect(() => {
+      console.log('events:', events);
+    }, [events]);
+
+    const postEvent = useCallback(async (e: IEventInfo) => {
+      console.log("calling postEvent...");
+      createEvent(e);
+    }, []);
+
+    const putEvent = useCallback(async (e: IEventInfo) => {
+      upEvent(e);
+    }, []);
+
+    const delEvent = useCallback(async (e: IEventInfo) => {
+      deleteEvent(e);
+    }, []);
 
 
     // AI chat
@@ -113,7 +168,7 @@ export function WebCalendar() {
       }
 
       const newEvents = [...events, data]
-
+      postEvent(data);
       setEvents(newEvents)
       handleClose()
     }
@@ -141,16 +196,18 @@ export function WebCalendar() {
             : setMinToZero(datePickerEventFormData.end),
       }
 
-      // const newEvents = [...events, data]
       const curEventIndex = events.findIndex(ev => ev._id === curEv._id)
       let copyEvents = [...events]
       copyEvents[curEventIndex] = {...data};
+      putEvent(data);
       setEvents(copyEvents)
       setDatePickerEventFormData(initialDatePickerEventFormData)
       setUpdateEvent(false)
     }
 
     const onDeleteEvent = () => {
+      const curEv = currentEvent as IEventInfo;
+      delEvent(curEv);
       setEvents(() => [...events].filter((e) => e._id !== (currentEvent as IEventInfo)._id!))
       setEventView(false)
     }
@@ -172,115 +229,97 @@ export function WebCalendar() {
           <CardContent>
           <Box sx={{ display: "flex"}}>
             <Box sx = {{ flex: 3 , pr: 2}}>
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <ButtonGroup size="large" variant="contained" aria-label="outlined primary button group">
-                    {/* <Button onClick={() => setOpenDatepicker(true)} size="small" variant="contained">
-                      Add event
-                    </Button> */}
-                    <Button onClick={() => setOpenEventList(true)} size="small" variant="contained">
-                      View all events
-                    </Button>
-                  </ButtonGroup>
-                </Box>
-                <Divider style={{ margin: 10 }} />
-                <AddEvent
-                  open={openSlot}
-                  handleClose={handleClose}
-                  eventFormData={eventFormData}
-                  setEventFormData={setEventFormData}
-                  onAddEvent={onAddEvent}
-                />
-                {/* <AddDatePickerEvent
-                  open={openDatepicker}
-                  handleClose={handleDatePickerClose}
-                  datePickerEventFormData={datePickerEventFormData}
-                  setDatePickerEventFormData={setDatePickerEventFormData}
-                  onAddEvent={onAddEventFromDatePicker}
-                /> */}
-                <UpdateEvent 
-                  open={updateEvent}
-                  handleClose={handleUpdateEventClose}
-                  event={currentEvent as IEventInfo}
-                  datePickerEventFormData={datePickerEventFormData}
-                  setDatePickerEventFormData={setDatePickerEventFormData}
-                  onUpdateEvent={onUpdateEvent}
-                />
-                <EventView
-                  open={eventView}
-                  handleClose={() => setEventView(false)}
-                  onDeleteEvent={onDeleteEvent}
-                  setUpdateEvent={setUpdateEvent}
-                  currentEvent={currentEvent as IEventInfo}
-                />
-                <Calendar
-                  localizer={localizer}
-                  events={events}
-                  onSelectEvent={handleSelectEvent}
-                  onSelectSlot={handleSelectSlot}
-                  selectable
-                  startAccessor="start"
-                  components={{ event: EventInfo }}
-                  endAccessor="end"
-                  defaultView="week"
-                  style={{
-                    height: 900,
-                  }}
-                />
-              </Box>
-              <Box
-                  sx={{
-                    flex: 1,
-                    borderLeft: "1px solid #ddd",
-                    pl: 2,
-                    display: "flex",
-                    borderRadius: 2, p: 4,
-                    flexDirection: "column",
-                    height: "900px",
-                    boxShadow: "0 0 10px rgba(0,0,0,0.1)"
-                  }}>
-                    <h3>AI Chat</h3>
-                    <Box
-                      sx={{
-                        flex: 1,
-                        overflowY: "auto",
-                        mb: 1,
-                        p: 1,
-                        border: "1px solid #ccc",
-                      }}
-                    >
-                      {chatMsgs.map((msg, i) => (
-                        <div key={i}>
-                          <span
-                            style={{
-                              fontWeight: "bold",
-                              color: msg.sender === "ai" ? "green" : "inherit",
-                              marginRight: 4
-                            }}
-                          >
-                            {msg.sender === "ai" ? "> " : ""}
-                          </span>
-                          {msg.msg}</div>
-                      ))}
-                    </Box>
-                    <Box sx={{ display: "flex", gap: 1 }}>
-                      <input
-                        style={{ flex: 1, padding: 8 }}
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        placeholder="Ask about your calendar..."
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter")
-                          {
-                            sendMessage();
-                            e.preventDefault();
-                          }
-                        }}
-                      />
-                      <Button variant="contained" onClick={sendMessage}>
-                        Send
-                      </Button>
-                    </Box>
+              <AddEvent
+                open={openSlot}
+                handleClose={handleClose}
+                eventFormData={eventFormData}
+                setEventFormData={setEventFormData}
+                onAddEvent={onAddEvent}
+              />
+              <UpdateEvent 
+                open={updateEvent}
+                handleClose={handleUpdateEventClose}
+                event={currentEvent as IEventInfo}
+                datePickerEventFormData={datePickerEventFormData}
+                setDatePickerEventFormData={setDatePickerEventFormData}
+                onUpdateEvent={onUpdateEvent}
+              />
+              <EventView
+                open={eventView}
+                handleClose={() => setEventView(false)}
+                onDeleteEvent={onDeleteEvent}
+                setUpdateEvent={setUpdateEvent}
+                currentEvent={currentEvent as IEventInfo}
+              />
+              <Calendar
+                localizer={localizer}
+                events={events}
+                onSelectEvent={handleSelectEvent}
+                onSelectSlot={handleSelectSlot}
+                selectable
+                startAccessor="start"
+                components={{ event: EventInfo }}
+                endAccessor="end"
+                defaultView="week"
+                style={{
+                  height: 900,
+                }}
+              />
+            </Box>
+            <Box
+                sx={{
+                  flex: 1,
+                  borderLeft: "1px solid #ddd",
+                  pl: 2,
+                  display: "flex",
+                  borderRadius: 2, p: 4,
+                  flexDirection: "column",
+                  height: "900px",
+                  boxShadow: "0 0 10px rgba(0,0,0,0.1)"
+                }}>
+                  <h3>AI Chat</h3>
+                  <Box
+                    sx={{
+                      flex: 1,
+                      overflowY: "auto",
+                      mb: 1,
+                      p: 1,
+                      border: "1px solid #ccc",
+                    }}
+                  >
+                    {chatMsgs.map((msg, i) => (
+                      <div key={i}>
+                        <span
+                          style={{
+                            fontWeight: "bold",
+                            color: msg.sender === "ai" ? "green" : "inherit",
+                            marginRight: 4
+                          }}
+                        >
+                          {msg.sender === "ai" ? "> " : ""}
+                        </span>
+                        {msg.msg}</div>
+                    ))}
                   </Box>
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <input
+                      style={{ flex: 1, padding: 8 }}
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder="Ask about your calendar..."
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter")
+                        {
+                          sendMessage();
+                          e.preventDefault();
+                        }
+                      }}
+                    />
+                    <Button variant="contained" onClick={sendMessage}>
+                      Send
+                    </Button>
+                  </Box>
+                </Box>
               </Box>
           </CardContent>
         </Card>
