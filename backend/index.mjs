@@ -15,8 +15,21 @@ const client = new DynamoDBClient();
 const docClient = DynamoDBDocumentClient.from(client);
 const tableName = "calendar-events";
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type,Authorization",
+};
  
 export const handler = async (event, context) => {
+  const method =
+    event.httpMethod ||
+    event?.requestContext?.http?.method ||   // HTTP API v2 / Lambda Function URL
+    event?.requestContext?.httpMethod;       // sometimes seen in older variants
+
+  if (method === "OPTIONS") {
+    return { statusCode: 204, headers: corsHeaders, body: "" };
+  }
   let response;
 
   switch (event.httpMethod) {
@@ -43,7 +56,10 @@ export const handler = async (event, context) => {
       };
   }
 
-  return response;
+  return {
+    ...response,
+    headers: corsHeaders,
+  };
 };
 
 const handleGetRequest = async () => {
@@ -55,6 +71,9 @@ const handleGetRequest = async () => {
 
   return {
     statusCode: 200,
+    headers: {
+      ...corsHeaders,
+    },
     body: JSON.stringify(response.Items),
   };
 };
@@ -77,6 +96,9 @@ const handlePostRequest = async (event, context) => {
 
   return {
     statusCode: 200,
+    headers: {
+      ...corsHeaders,
+    },
     body: JSON.stringify({ message: "Task created successfully" }),
   };
 };
@@ -109,6 +131,9 @@ export const handleUpdateRequest = async (event, context) => {
 
   return {
     statusCode: 200,
+    headers: {
+      ...corsHeaders,
+    },
     body: JSON.stringify({
       message: "Task updated successfully",
       task: response.Attributes,
@@ -129,6 +154,9 @@ const handleDeleteRequest = async (event) => {
 
   return {
     statusCode: 200,
+    headers: {
+      ...corsHeaders,
+    },
     body: JSON.stringify({
       message: "Task deleted successfully",
       task: response.Attributes,
