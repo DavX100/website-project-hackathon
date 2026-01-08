@@ -1,3 +1,4 @@
+
 /**
  * Main calendar component
  */
@@ -19,6 +20,9 @@ import EventInfo from "./EventInfo"
 import AddEvent from "./AddEvent"
 import EventView from "./EventView"
 import UpdateEvent from "./UpdateEvent"
+
+const AI_ENDPOINT = "https://ttwhpefqj7l3i6s5czo3hxlufm0blzww.lambda-url.us-east-2.on.aws/"
+
 
 const locales = {
   "en-US": enUS,
@@ -63,20 +67,133 @@ export function WebCalendar() {
 
 
     // AI chat
-    const sendMessage = () => {
-      if (!chatInput.trim()) return
+    const submitAIRequest = async () => {
+      const packets = {
+        userRequest: chatInput.trim(),
+        now: new Date().toISOString(),
+        timezone: "America/New_York",
+        events: events.map(e => ({
+          _id: e._id,
+          description: e.description,
+          start: e.start ? (e.start instanceof Date ? e.start : new Date(e.start)).toISOString() : null,
+          end: e.end ? (e.end instanceof Date ? e.end : new Date(e.end)).toISOString() : null,
+          allDay: !!e.allDay,
+      })),
+    };
 
-      setChatMsgs(prev => [...prev, {sender: "user", msg: chatInput.trim()}])
+    const res = await fetch(AI_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(packets),
+    });
 
-      setTimeout(() => 
-      {
-        setChatMsgs(prev => [...prev, {sender: "ai", msg: "AI response."}])
-      }, 500)
+    const action = await res.json();
 
-      setChatInput("");
+      
+      if (action && action.type === "calendar.deleteEvent") {
+        const eventIdToDelete = action.args._id
+        const eventDescription = events.find(x => x._id === eventIdToDelete)?.description
+        setEvents((prevEvents) => prevEvents.filter((e) => e._id !== eventIdToDelete))
+        sendMessage("ai", `Deleted event: ${eventDescription}`)
+
+      } else if (action && action.type === "calendar.addEvent") {
+        const {description, start, end, allDay} = action.args
+        const newEvent: IEventInfo = {
+          _id: generateId(),
+          description,
+          start: new Date(start),
+          end: new Date(end),
+          allDay: allDay ?? false
+        }
+        setEvents(prev => [...prev, newEvent])
+        sendMessage("ai", `Added event: ${description} from ${start} to ${end}`)
+      }
+      else if (action && action.type === "calendar.updateEvent") {
+        const {_id, description, start, end, allDay} = action.args
+        const eventIndex = events.findIndex(i => i._id === _id)
+        if (eventIndex !== -1) {
+          const newEvent: IEventInfo = {
+            _id,
+            description,
+            start: new Date(start),
+            end: new Date(end),
+            allDay: allDay ?? false
+          }
+
+          setEvents(all => {
+            const allEvents = [...all]
+            allEvents[eventIndex] = newEvent
+            return allEvents
+          })
+
+          sendMessage("ai", `Updated event: ${description} from ${start} to ${end}`)
+        }
+      }
+      else {
+        sendMessage("ai", "No valid action found in AI response.")
+      }
     }
 
+    const sendMessage = (author: "user" | "ai", msg="") => {
+      if (msg && author === "ai")
+        setChatMsgs(prev => [...prev, {sender: author, msg: msg}])
+      else if (author === "user")
+      {
+        if (!chatInput.trim()) return
+        //what to send to AI bot
+        if (!chatInput.trim()) return;
 
+        setChatMsgs(prev => [...prev, { sender: author, msg: chatInput.trim() }]);
+        submitAIRequest();
+        setChatInput("");
+        
+      }
+    }
+
+    type CalendarAction =  { 
+      type: "calendar.deleteEvent"
+      args: { _id: string }
+    }
+    |
+    {
+      type: "calendar.addEvent"
+      args: { description: string, start: string, end: string, allDay: boolean}
+    }
+    |
+    {
+      type: "calendar.updateEvent"
+      args: { _id: string, description: string, start: string, end: string, allDay: boolean }
+    }
+
+    function tryParseAction(text: string): CalendarAction | null {
+      try {
+        const obj = JSON.parse(text);
+        if (obj.type === "calendar.deleteEvent" && typeof obj.args._id === "string") {
+          return obj;
+        }
+        if (obj.type === "calendar.addEvent" &&
+          typeof obj.args.description === "string" &&
+          typeof obj.args.start === "string" &&
+          typeof obj.args.end === "string" &&
+          typeof obj.args.allDay === "boolean") {
+          return obj;
+        }
+        if (obj.type === "calendar.updateEvent" &&
+          typeof obj.args.description === "string" &&
+          typeof obj.args.start === "string" &&
+          typeof obj.args.end === "string" &&
+          typeof obj.args._id === "string" &&
+          typeof obj.args.allDay === "boolean"
+        )
+        {
+          return obj;
+        }
+
+        return null;
+      } catch {
+        return null;
+      }
+    }
 
     //calendar
 
@@ -98,7 +215,7 @@ export function WebCalendar() {
 
     const handleUpdateEventClose = () => {
       setDatePickerEventFormData(initialDatePickerEventFormData)
-      setUpdateEvent(false)
+      setUpdateEvent(false) 
     }
 
     const onAddEvent = (e: MouseEvent<HTMLButtonElement>) => {
@@ -237,7 +354,7 @@ export function WebCalendar() {
                             marginRight: 4
                           }}
                         >
-                          {msg.sender === "ai" ? "> " : ""}
+                          {msg.sender === "ai" ? "> " : null}
                         </span>
                         {msg.msg}</div>
                     ))}
@@ -251,12 +368,13 @@ export function WebCalendar() {
                       onKeyDown={(e) => {
                         if (e.key === "Enter")
                         {
-                          sendMessage();
+                          sendMessage("user");
+                          
                           e.preventDefault();
                         }
                       }}
                     />
-                    <Button variant="contained" onClick={sendMessage}>
+                    <Button variant="contained" onClick={() => sendMessage("user")}>
                       Send
                     </Button>
                   </Box>
