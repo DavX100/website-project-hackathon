@@ -3,7 +3,7 @@
  * Main calendar component
  */
 
-import { useState, type MouseEvent } from "react"
+import { useState, useEffect, type MouseEvent, useCallback } from "react"
 import { Box, Button, Card, CardContent, CardHeader, Container, Divider} from "@mui/material"
 
 import { Calendar, type Event, dateFnsLocalizer } from "react-big-calendar"
@@ -20,6 +20,7 @@ import EventInfo from "./EventInfo"
 import AddEvent from "./AddEvent"
 import EventView from "./EventView"
 import UpdateEvent from "./UpdateEvent"
+import {createEvent, deleteEvent, getEvents, upEvent} from "../../api/apis.js"
 
 const AI_ENDPOINT = "https://ttwhpefqj7l3i6s5czo3hxlufm0blzww.lambda-url.us-east-2.on.aws/"
 
@@ -64,6 +65,61 @@ export function WebCalendar() {
 
     const [chatMsgs, setChatMsgs] = useState<{sender: "ai" | "user", msg: string}[]>([])
     const [chatInput, setChatInput] = useState<string>("")
+
+    // const postEvent = useCallback(async () => {
+    //   const newEvent = events.
+    //   await createEvent()
+    // }, [])
+
+    const convertResponse = (e: {id: string, description: string, allDay: boolean, startDate: string, endDate: string}[]) => {
+      const converted: IEventInfo[] = [];
+      for (let i = 0; i < e.length; i++) {
+        const event = e[i];
+        // const newStartDate = event.start || new Date();
+        const newStart = event.startDate ? new Date(event.startDate) : undefined;
+        const newEnd = event.endDate ? new Date(event.endDate) : undefined;
+        const converedEvent: IEventInfo = {
+          _id: event.id,
+          description: event.description,
+          allDay: event.allDay,
+          start: newStart,
+          end: newEnd,
+        }
+        converted.push(converedEvent);
+      }
+      // console.log("converted: ", converted);
+      return converted;
+    }
+    
+    useEffect(() => {
+      const fetchEvents = async () => {
+        const response = await getEvents();
+        const data = response.data;
+        const parsedData = convertResponse(data);
+        console.log(JSON.stringify(response.data));
+        console.log(data);
+        setEvents(parsedData);
+        console.log(events);
+      }
+      fetchEvents();
+    }, []);
+
+    useEffect(() => {
+      console.log('events:', events);
+    }, [events]);
+
+    const postEvent = useCallback(async (e: IEventInfo) => {
+      console.log("calling postEvent...");
+      createEvent(e);
+    }, []);
+
+    const putEvent = useCallback(async (e: IEventInfo) => {
+      upEvent(e);
+    }, []);
+
+    const delEvent = useCallback(async (e: IEventInfo) => {
+      deleteEvent(e);
+    }, []);
 
 
     // AI chat
@@ -229,7 +285,7 @@ export function WebCalendar() {
       }
 
       const newEvents = [...events, data]
-
+      postEvent(data);
       setEvents(newEvents)
       handleClose()
     }
@@ -260,12 +316,15 @@ export function WebCalendar() {
       const curEventIndex = events.findIndex(ev => ev._id === curEv._id)
       let copyEvents = [...events]
       copyEvents[curEventIndex] = {...data};
+      putEvent(data);
       setEvents(copyEvents)
       setDatePickerEventFormData(initialDatePickerEventFormData)
       setUpdateEvent(false)
     }
 
     const onDeleteEvent = () => {
+      const curEv = currentEvent as IEventInfo;
+      delEvent(curEv);
       setEvents(() => [...events].filter((e) => e._id !== (currentEvent as IEventInfo)._id!))
       setEventView(false)
     }
@@ -354,7 +413,7 @@ export function WebCalendar() {
                             marginRight: 4
                           }}
                         >
-                          {msg.sender === "ai" ? "> " : null}
+                          {msg.sender === "ai" ? "> " : ""}
                         </span>
                         {msg.msg}</div>
                     ))}
