@@ -148,14 +148,14 @@ export function WebCalendar() {
 
 
       const addEventAndPersist = async (event: IEventInfo) => {
-        const saved = await createEvent(event);
-        setEvents(prev => [...prev, saved]);
+        await createEvent(event);
+        setEvents(prev => [...prev, event]);
       };
       
       const updateEventAndPersist = async (event: IEventInfo) => {
-        const saved = await upEvent(event);
+        await upEvent(event);
         setEvents(prev =>
-          prev.map(e => (e._id === saved._id ? saved : e))
+          prev.map(e => (e._id === event._id ? event : e))
         );
       };
       
