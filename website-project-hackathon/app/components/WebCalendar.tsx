@@ -22,7 +22,7 @@ import EventView from "./EventView"
 import UpdateEvent from "./UpdateEvent"
 import {createEvent, deleteEvent, getEvents, upEvent} from "../../api/apis.js"
 
-const AI_ENDPOINT = "https://ttwhpefqj7l3i6s5czo3hxlufm0blzww.lambda-url.us-east-2.on.aws/"
+const AI_ENDPOINT = "https://hlxgzmmk44.execute-api.us-east-2.amazonaws.com/default/AIChatbot"
 
 
 const locales = {
