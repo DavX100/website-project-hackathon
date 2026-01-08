@@ -143,13 +143,34 @@ export function WebCalendar() {
       body: JSON.stringify(packets),
     });
 
-    const action = await res.json();
+    const preaction = await res.json();
+    const action = preaction.action
+
+
+      const addEventAndPersist = async (event: IEventInfo) => {
+        const saved = await createEvent(event);
+        setEvents(prev => [...prev, saved]);
+      };
+      
+      const updateEventAndPersist = async (event: IEventInfo) => {
+        const saved = await upEvent(event);
+        setEvents(prev =>
+          prev.map(e => (e._id === saved._id ? saved : e))
+        );
+      };
+      
+      const deleteEventAndPersist = async (event: IEventInfo) => {
+        await deleteEvent(event);
+        setEvents(prev => prev.filter(e => e._id !== event._id));
+      };
+
 
       
       if (action && action.type === "calendar.deleteEvent") {
         const eventIdToDelete = action.args._id
-        const eventDescription = events.find(x => x._id === eventIdToDelete)?.description
-        setEvents((prevEvents) => prevEvents.filter((e) => e._id !== eventIdToDelete))
+        const foundEvent = events.find(x => x._id === eventIdToDelete)
+        const eventDescription = foundEvent?.description
+        await deleteEventAndPersist(foundEvent);
         sendMessage("ai", `Deleted event: ${eventDescription}`)
 
       } else if (action && action.type === "calendar.addEvent") {
@@ -161,7 +182,7 @@ export function WebCalendar() {
           end: new Date(end),
           allDay: allDay ?? false
         }
-        setEvents(prev => [...prev, newEvent])
+        await addEventAndPersist(newEvent)
         sendMessage("ai", `Added event: ${description} from ${start} to ${end}`)
       }
       else if (action && action.type === "calendar.updateEvent") {
@@ -176,11 +197,7 @@ export function WebCalendar() {
             allDay: allDay ?? false
           }
 
-          setEvents(all => {
-            const allEvents = [...all]
-            allEvents[eventIndex] = newEvent
-            return allEvents
-          })
+          await updateEventAndPersist(newEvent);
 
           sendMessage("ai", `Updated event: ${description} from ${start} to ${end}`)
         }
